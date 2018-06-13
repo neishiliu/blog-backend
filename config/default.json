@@ -1,0 +1,10 @@
+{
+    "mongo": {
+        "host": "localhost",
+        "uname": "",
+        "pwd": "",
+        "dbname": "koa2",
+        "rs_name": "",
+        "auth_source": ""
+    }
+}
