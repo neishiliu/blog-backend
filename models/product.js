@@ -1,7 +1,8 @@
 const db = require('../lib/mongo')
 const Schema = require('mongoose').Schema
+const logger = require('../lib/logger')
 
-const productModel = new Schema({
+const productSchema = new Schema({
     name: String,
     price: {
         type: Number,
@@ -18,13 +19,12 @@ const productModel = new Schema({
     toObject: { getters: true },
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" }
   })
-productModel.index({name: 1})
+  productSchema.index({name: 1})
 
-const product = db.model('product', productModel)
+const productModel = db.model('product', productSchema)
 
-product.on('index', function(error) {
-    // "_id index cannot be sparse"
-    console.log(error.message);
+productModel.on('index', function(error) {
+    logger.error(error.message);
   });
 
-module.exports = product
+module.exports = productModel
