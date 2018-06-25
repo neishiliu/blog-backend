@@ -15,6 +15,8 @@ const debug = require('debug')('koa2:server')
 const path = require('path')
 const errorRes = require('./middleware/error-res')
 const returnRes = require('./middleware/return-res')
+const passport = require('./lib/passport_config')
+const session = require('koa-session2')
 
 const config = require('config')
 
@@ -33,6 +35,9 @@ app.use(bodyparser())
     map: {'njk': 'nunjucks'},
     extension: 'njk'
   }))
+  .use(session({ key: "assion_token" }))
+  .use(passport.initialize())
+  .use(passport.session())
 
 // logger
 app.use(async (ctx, next) => {

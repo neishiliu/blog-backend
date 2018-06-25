@@ -1,5 +1,7 @@
+"use strict"
 const userModel = require('../models/user')
 const unit = require('../lib/unit')
+const passport = require('../lib/passport_config')
 
 module.exports =  (router) => {
   // 获取所有用户
@@ -27,16 +29,32 @@ module.exports =  (router) => {
   }),
   // 用户登录
   router.post('/login', async (ctx, next) => {
-    const user = ctx.request.body
-    const datauser = await userModel.findOne({user_name: user.user_name})
-    if (datauser) {
-      if (datauser.password !== unit.md5sum(datauser.salt + user.password)) {
-        ctx.return(-2, '用户名或密码不正确')
+    // const user = ctx.request.body
+    // const datauser = await userModel.findOne({user_name: user.user_name})
+    // if (datauser) {
+    //   if (datauser.password !== unit.md5sum(datauser.salt + user.password)) {
+    //     ctx.return(-2, '用户名或密码不正确')
+    //   } else {
+    //     delete datauser.password
+    //     delete datauser.salt
+    //     ctx.return(0, datauser)
+    //   }
+    // } else {
+    //   ctx.return(-2, '用户名或密码不正确')
+    // }
+    return passport.authenticate('local', function (err, user, info, status) {
+      if (user) {
+        delete user.password
+        delete user.salt
+        ctx.login(user)
+        return ctx.return(0, user)
       } else {
-        ctx.return(0, datauser)
+        ctx.return(-2, info)
       }
-    } else {
-      ctx.return(-2, '用户名或密码不正确')
-    }
+    })(ctx, next)
+  }),
+  // 用户登出
+  router.get('/logout', function (ctx, next) {
+    
   })
 }

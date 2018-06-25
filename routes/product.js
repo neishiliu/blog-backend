@@ -11,13 +11,12 @@ module.exports =  (router) => {
         ctx.return(0, newPro);
     }),
     router.get('/', async (ctx, next) => {
-        const list = await productModel.find({delete_date:{$exists:false}}).lean()
-        ctx.return(0, list);
+        // const list = await productModel.find({delete_date:{$exists:false}}).lean()
+        ctx.return(0, {a: 111});
     }),
     router.delete('/', async (ctx, next) => {
         const body = ctx.request.body;
         const del = await productModel.findOneAndUpdate({name: body.name}, {delete_date: Date.now()}, {new: true, runValidators: true})
         ctx.return(0, del);
     })
-  }
-  
+  } 
