@@ -19,7 +19,7 @@ module.exports = (router) => {
                     })
                     ctx.return(0, info)
                 } else {
-                    ctx.return(-2, '获取微信授权失败')
+                    ctx.return(-2, res)
                 }
             } catch (e) {
                 ctx.return(-2, e)
