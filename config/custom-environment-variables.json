@@ -1,0 +1,10 @@
+{
+    "mongo": {
+        "host": "mongo_host",
+        "uname": "mongo_uname",
+        "pwd": "mongo_pwd",
+        "dbname": "mongo_dbname",
+        "rs_name": "mongo_rsname",
+        "auth_source": "mongo_authsource"
+      }
+}

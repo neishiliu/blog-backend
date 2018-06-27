@@ -45,4 +45,4 @@ RUN npm config set registry https://registry.npm.taobao.org && \
 COPY ./ /app
 WORKDIR /app
 RUN cp -r /tmp/node_modules /app
-ENTRYPOINT ["node"]
+ENTRYPOINT node app.js

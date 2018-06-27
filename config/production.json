@@ -1,0 +1,10 @@
+{
+    "mongo": {
+        "host": "140.143.99.241:27017",
+        "uname": "test",
+        "pwd": "test19920828",
+        "dbname": "test",
+        "rs_name": "",
+        "auth_source": ""
+    }
+}

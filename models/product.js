@@ -9,11 +9,7 @@ const productSchema = new Schema({
         min: [66, '价格太低'],
         max: [999, '超出最大价格限制']
     },
-    delete_date: Date,
-    city: {
-        type: String,
-        required: '{PATH} is required'
-    }
+    delete_date: Date
 }, {
     toJSON: { getters: true },
     toObject: { getters: true },
