@@ -1,10 +1,14 @@
 {
     "mongo": {
-        "host": "localhost",
-        "uname": "",
-        "pwd": "",
-        "dbname": "koa2",
+        "host": "140.143.99.241:27017",
+        "uname": "test",
+        "pwd": "test19920828",
+        "dbname": "test",
         "rs_name": "",
         "auth_source": ""
+    },
+    "wx": {
+        "appid": "wx306ad53dc6897d22",
+        "secret": "c1e6c294422dfd340c7bd1da534db488"
     }
 }

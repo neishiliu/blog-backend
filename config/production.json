@@ -6,5 +6,9 @@
         "dbname": "test",
         "rs_name": "",
         "auth_source": ""
+    },
+    "wx": {
+        "appid": "wx306ad53dc6897d22",
+        "secret": "c1e6c294422dfd340c7bd1da534db488"
     }
 }
