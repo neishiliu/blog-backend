@@ -10,6 +10,7 @@ const bindingSchema = new Schema({
     city: String,
     openid: String,
     account: String,
+    system_no: String,
     delete_date: Date
 }, {
     toJSON: { getters: true },
