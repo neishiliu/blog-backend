@@ -1,6 +1,7 @@
 const rq = require('../lib/request')
 const bindingModel = require('../models/binding')
 const systemModel = require('../models/system')
+const codeModel = require('../models/code')
 const redis = require('../lib/redis')
 const randomstring = require('randomstring')
 const {appid, secret} = require('config').get('wx')
@@ -56,10 +57,10 @@ module.exports = (router) => {
                         const system_redeirect = dbsystem.redirect_url
                         const resultCode = randomstring.generate(32)
                         if (binding) {
-                            await redis.setex(resultCode, 60 * 2, JSON.stringify(binding))
+                            await redis.setex(resultCode, 60 * 2, JSON.stringify({result: 1, data: binding}))
                             ctx.return(0, {url: `${system_redeirect}?resultCode=${resultCode}`})
                         } else {
-                            await redis.setex(resultCode, 60 * 2, JSON.stringify(info))
+                            await redis.setex(resultCode, 60 * 2, JSON.stringify({result: 0, data: info}))
                             ctx.return(0, {url: `${system_redeirect}?resultCode=${resultCode}`})
                         }
                     } else {
@@ -78,21 +79,64 @@ module.exports = (router) => {
     router.get('/result', async (ctx, next) => {
         const { resultCode } = ctx.query
         const info = JSON.parse(await redis.get(resultCode))
-        ctx.return(0, info)
+        if (info) {
+          ctx.return(0, info)
+        } else {
+          ctx.return(-2, 'resultCode不存在或已过期')
+        }
     }),
     router.post('/binding', async (ctx, next) => {
-        const {account, resultCode, system_no} = ctx.request.body
+        const {account, resultCode, system_no, code} = ctx.request.body
+        const dbcode = await codeModel.findOne({code})
+        // 检验激活码有效性
+        if (!dbcode) {
+          ctx.return(-2, '激活码不存在')
+          return false
+        } else {
+          if (dbcode.account !== account) {
+            ctx.return(-2, '激活码与账号不匹配')
+            return false
+          }
+          if (dbcode.system !== system_no) {
+            ctx.return(-2, '激活码与系统不匹配')
+            return false
+          }
+        }
+
+        // 检查账号是否已绑定
         const binding = await bindingModel.findOne({account: account, system_no: system_no, delete_date: {$exists:false}}).lean()
         if (binding) {
             ctx.return(-2, '该账号已绑定')
         } else {
+            // 将账号信息加入微信用户信息完成绑定
             const info = JSON.parse(await redis.get(resultCode))
-            if (info) {
-                const newBinding = await bindingModel.create(Object.assign(info, {account, system_no}))
+            if (info && info.data) {
+                const newBinding = await bindingModel.create(Object.assign(info.data, {account, system_no}))
+                // 绑定完成后删除激活码
+                await codeModel.findOneAndRemove({code})
                 ctx.return(0, newBinding)
             } else {
                 ctx.return(-2, 'resultCode不存在或已过期')
             }
         }
+    }),
+    router.post('/code', async (ctx) => {
+      const {accounts, system} = ctx.request.body
+      if (!accounts) {
+        ctx.return(-2, '账号不可为空')
+        return false
+      }
+      if (!system) {
+        ctx.return(-2, '系统不可为空')
+        return false
+      }
+      const accountArr = accounts.split(',')
+      const arr = []
+      for(let account of accountArr) {
+        const code = randomstring.generate(8)
+        const dbcode = await codeModel.create({code, account, system})
+        arr.push(dbcode)
+      }
+      ctx.return(0, arr)
     })
 }
