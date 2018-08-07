@@ -6,9 +6,9 @@ const codeSchema = new Schema({
   code: String,  // 激活码
   system: String, // 系统编号
   account: String,  // 账号
-  isBinding:  {  // 是否已使用 0 未使用  1已使用
+  status:  {  // 状态 1有效 2过期 3作废 4已激活
     type: Number,
-    default: 0
+    default: 1
   },
   delete_date: Date
 }, {

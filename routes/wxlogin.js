@@ -61,7 +61,7 @@ module.exports = (router) => {
                             ctx.return(0, {url: `${system_redeirect}?resultCode=${resultCode}`})
                         } else {
                             await redis.setex(resultCode, 60 * 2, JSON.stringify({result: 0, data: info}))
-                            ctx.return(0, {url: `${system_redeirect}?resultCode=${resultCode}`})
+                            ctx.return(0, {resultCode})
                         }
                     } else {
                         ctx.return(0, info)
@@ -101,6 +101,10 @@ module.exports = (router) => {
             ctx.return(-2, '激活码与系统不匹配')
             return false
           }
+          if (dbcode.status !== 1) {
+            ctx.return(-2, '无效的激活码')
+            return false
+          }
         }
 
         // 检查账号是否已绑定
@@ -112,31 +116,17 @@ module.exports = (router) => {
             const info = JSON.parse(await redis.get(resultCode))
             if (info && info.data) {
                 const newBinding = await bindingModel.create(Object.assign(info.data, {account, system_no}))
-                // 绑定完成后删除激活码
-                await codeModel.findOneAndRemove({code})
-                ctx.return(0, newBinding)
+                // 绑定完成后更新激活码状态
+                await codeModel.findOneAndUpdate({code}, {status: 4}, {new: true, runValidators: true})
+
+                // 更新Redis结果数据，返回回调地址
+                const dbsystem = await systemModel.findOne({system_no: system_no})
+                const system_redeirect = dbsystem.redirect_url
+                await redis.setex(resultCode, 60 * 2, JSON.stringify({result: 1, data: newBinding}))
+                ctx.return(0, {url: `${system_redeirect}?resultCode=${resultCode}`})
             } else {
                 ctx.return(-2, 'resultCode不存在或已过期')
             }
         }
-    }),
-    router.post('/code', async (ctx) => {
-      const {accounts, system} = ctx.request.body
-      if (!accounts) {
-        ctx.return(-2, '账号不可为空')
-        return false
-      }
-      if (!system) {
-        ctx.return(-2, '系统不可为空')
-        return false
-      }
-      const accountArr = accounts.split(',')
-      const arr = []
-      for(let account of accountArr) {
-        const code = randomstring.generate(8)
-        const dbcode = await codeModel.create({code, account, system})
-        arr.push(dbcode)
-      }
-      ctx.return(0, arr)
     })
 }
